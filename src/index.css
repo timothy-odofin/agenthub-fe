@@ -1,0 +1,27 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+*{
+  @apply
+  box-border
+
+}
+
+.sidebar-menu-item{
+  @apply
+  opacity-0
+  hover:opacity-100
+  transition-colors
+  duration-200
+  ease-in-out
+  rounded-md
+  px-3
+  py-2
+  cursor-pointer
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
