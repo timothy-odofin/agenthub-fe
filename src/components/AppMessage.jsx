@@ -3,7 +3,7 @@ import clsx from "clsx";
 
 const AppMessage = ({ message }) => {
   const isUser = message.sender === "user";
-
+ 
   return (
     <div
       className={clsx(

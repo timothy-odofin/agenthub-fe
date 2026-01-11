@@ -1,7 +1,42 @@
-@import "tailwindcss";
+/* @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  :root {
+    --primary: 25 93 230;
+    --background: 248 249 252;
+  }
+
+  .dark {
+    --background: 17 22 33;
+  }
+
+  body {
+   
+    background-color: rgb(var(--background));
+  }
+} */
+
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 248 249 252;
+    --primary: 25 93 230;
+  }
+
+  .dark {
+    --background: 17 22 33;
+    --primary: 96 165 250;
+  }
+
+  body {
+     font-family: Inter, sans-serif;
+    background-color: rgb(var(--background) / 1);
+  }
+}
+
 
 *{
   @apply

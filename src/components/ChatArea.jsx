@@ -35,8 +35,8 @@ const ChatArea = ({ chat, onSendMessage }) => {
       >
         {isNewChat ? (
           <div className="text-gray-400 text-center">
-            <h3 className="text-black text-[25px] font-bold">This is Botmate</h3>
-            Start the conversation by typing below...
+            <h3 className="text-black text-[25px] font-bold">How can I help you today?</h3>
+           I'm your AI assistant. Ask me anything about code, writing, or learning concepts.
           </div>
         ) : (
           chat.messages.map((message) => (

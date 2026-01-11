@@ -29,7 +29,7 @@ const InputArea = ({ onSendMessage }) => {
   }
 
   return (
-    <form
+   <form
   onSubmit={handleSubmit}
   className="flex items-center gap-2 p-4 sm:px-6 bg-white shadow-md rounded-lg relative"
 >

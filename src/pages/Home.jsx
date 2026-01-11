@@ -148,7 +148,7 @@ const Home = () => {
               // Just for reference Still going to update it
              <Button
               variant="outline"
-              className="flex items-center gap-2 cursor-pointer opacity-50 rounded-md" >
+              className="flex items-center gap-2 cursor-pointer opacity-50 rounded-md " >
                <a href="/login">
                Login
                </a>
