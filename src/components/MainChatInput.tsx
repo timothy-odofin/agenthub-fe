@@ -1,12 +1,13 @@
-import { Plus, SendHorizonal } from "lucide-react";
+import { Paperclip, SendHorizonal } from "lucide-react";
 import React, { useRef, useState } from "react";
 
 interface ChatInputProps {
   onSend: (msg: string) => void;
   isEmpty: boolean;
+  isLoading?: boolean;
 }
 
-export default function ChatInput({ onSend }: ChatInputProps) {
+export default function ChatInput({ onSend, isLoading = false }: ChatInputProps) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const MAX_HEIGHT = 160;
@@ -22,7 +23,7 @@ export default function ChatInput({ onSend }: ChatInputProps) {
   };
 
   const sendMessage = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
     onSend(input.trim());
     setInput("");
 
@@ -30,39 +31,56 @@ export default function ChatInput({ onSend }: ChatInputProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 border border-gray-200 rounded-xl p-3 shadow-sm bg-white">
-      
-      <textarea
-        ref={textareaRef}
-        value={input}
-        onChange={handleChange}
-        placeholder="Type a message..."
-        rows={1}
-        className="w-full resize-none border-none outline-none px-2 py-2 rounded-lg overflow-y-auto max-h-[160px]"
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-          }
-        }}
-      />
+    <div className="relative">
+      <div className="flex flex-col gap-2 border-2 border-gray-200 rounded-2xl p-3 shadow-lg bg-white hover:border-blue-300 transition-colors focus-within:border-blue-500 focus-within:shadow-xl">
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={handleChange}
+          placeholder="Type your message..."
+          rows={1}
+          disabled={isLoading}
+          className="w-full resize-none border-none outline-none px-2 py-2 rounded-lg overflow-y-auto max-h-[160px] disabled:opacity-50 text-gray-800 placeholder:text-gray-400"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+        />
 
-      <div className="flex justify-between items-center">
-        <button
-          type="button"
-          className="bg-gray-200 text-gray-600 rounded-full p-3 hover:bg-gray-300 transition"
-        >
-          <Plus size={16} />
-        </button>
+        <div className="flex justify-between items-center">
+          <button
+            type="button"
+            className="text-gray-400 hover:text-gray-600 rounded-full p-2 hover:bg-gray-100 transition"
+            title="Attach file (coming soon)"
+          >
+            <Paperclip size={18} />
+          </button>
 
-        <button
-          onClick={sendMessage}
-          disabled={!input.trim()}
-          className="bg-blue-600 text-white rounded-full p-3 hover:bg-blue-700 disabled:bg-gray-400 transition"
-        >
-          <SendHorizonal size={16} />
-        </button>
+          <button
+            onClick={sendMessage}
+            disabled={!input.trim() || isLoading}
+            className="bg-blue-600 text-white rounded-full px-4 py-2 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-medium">Sending...</span>
+              </>
+            ) : (
+              <>
+                <span className="text-sm font-medium">Send</span>
+                <SendHorizonal size={16} />
+              </>
+            )}
+          </button>
+        </div>
       </div>
+      
+      <p className="text-xs text-gray-400 mt-2 text-center">
+        Press <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">Shift + Enter</kbd> for new line
+      </p>
     </div>
   );
 }

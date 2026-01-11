@@ -11,6 +11,10 @@ import ChatLayout from "@/page/ChatLayout";
 const routes: RouteObject[] = [
   {
     path: "/",
+    element: <Login/>
+  },
+  {
+    path: "/app",
     element: <App/>,
     children: [
       {index: true , element: <ConversationalAuth/>},

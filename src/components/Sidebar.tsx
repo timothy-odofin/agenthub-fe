@@ -3,94 +3,119 @@ interface SidebarProps {
   currentSession: string | null;
   onNewChat: () => void;
   onSelectSession: (id: string) => void;
+  isLoading?: boolean;
 }
 
-import { History, Info, Plus, Settings } from "lucide-react";
+import { History, Info, Loader2, MessageSquare, Plus, Settings } from "lucide-react";
 
 export default function Sidebar({
   sessions,
   currentSession,
   onNewChat,
   onSelectSession,
+  isLoading = false,
 }: SidebarProps) {
   return (
-    
-
-    <aside className="w-[280px] hidden md:flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 h-full shrink-0">
-      <div className="flex flex-col h-full justify-between p-4">
-        <div className="flex flex-col gap-6">
-          <div className="flex gap-3 items-center px-2">
-            <div
-              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700 bg-[url('https://lh3.googleusercontent.com/aida-public/AB6AXuDqbWFf_XzxFb3KHnWF4K-yBWWL16Ogegu6BeGaB-ViJVnSqzmxpcFdPGYiIpI4twq0TNdjNSczIzNf-0EbtkbEv_TtPO0aD3Iz7oDwDy1rUhcxzYRCuFa5ym-P1Z0F8Wliqeu4YP16lF4GaPWUA_0BH_RpYCRb2tpCqoueriIEtdxnHR4wxHaNrJypa3ySA8KCWpXtWBWCwko3TGliCAgfHMtrGKklxVyvtHbXLiPLANPK0QgVig21UR-waacXKki1gEDD1JaqHxU')]"
-              data-alt="Abstract gradient avatar representing the AI bot"
-              
-            ></div>
+    <aside className="w-[280px] hidden md:flex flex-col border-r border-gray-200 bg-white h-full shrink-0">
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex gap-3 items-center mb-4">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-white" />
+            </div>
             <div className="flex flex-col">
-              <h1 className="text-slate-900 dark:text-white text-base font-semibold leading-normal">
-                My Chatbot
+              <h1 className="text-gray-900 text-base font-semibold">
+                AgentHub
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-normal leading-normal">
-                Pro Plan
+              <p className="text-gray-500 text-xs">
+                AI Assistant
               </p>
             </div>
           </div>
-            {/* TOP Bar */}
-          <nav className="flex flex-col gap-2">
-            <button  onClick={onNewChat} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary dark:text-blue-400 hover:bg-primary/20 transition-colors group">
-              <span
-                className=" group-hover:scale-110 transition-transform text-[24px]"
-               
-              >
-                <Plus/>
-              </span>
-              <span className="text-sm font-medium leading-normal">New Chat</span>
-            </button>
-            <div className="pt-4 pb-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Recents
-            </div>
-           
-         {sessions.map((s) => (
-          <button className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-700 dark:text-slate-300 ${
-              currentSession === s.session_id ? "bg-blue-200" : "bg-white"
-            }`}
-            key={s.session_id}
-            onClick={() => onSelectSession(s.session_id)}
-            
+          
+          {/* New Chat Button */}
+          <button  
+            onClick={onNewChat} 
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md group"
           >
-             <span
-                className=" text-slate-400 text-[20px]"
-                
-              >
-                <History/>
-              </span>
-            <p className="font-semibold">{s.title || "Untitled Chat"}</p>
-           <span className="text-sm font-medium leading-normal truncate">
-              Messages: {s.message_count}
-            </span>
+            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+            <span className="text-sm font-medium">New Chat</span>
           </button>
-        ))}
-           
-          </nav>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-slate-200 dark:border-slate-800 pt-4">
-          <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-700 dark:text-slate-300">
-            <span className=" text-[24px]" >
-              <Settings/>
-            </span>
-            <span className="text-sm font-medium leading-normal">Settings</span>
+        {/* Sessions List */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+              Recent Chats
+            </div>
+            
+            <nav className="flex flex-col gap-1">
+              {sessions.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400">No conversations yet</p>
+                </div>
+              ) : (
+                sessions.map((s) => (
+                  <button 
+                    className={`flex items-start gap-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-all text-left group relative ${
+                      currentSession === s.session_id 
+                        ? "bg-blue-50 hover:bg-blue-100 border-l-2 border-blue-600" 
+                        : "hover:border-l-2 hover:border-gray-300"
+                    }`}
+                    key={s.session_id}
+                    onClick={() => onSelectSession(s.session_id)}
+                    disabled={isLoading}
+                  >
+                    <History className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                      currentSession === s.session_id ? "text-blue-600" : "text-gray-400"
+                    }`} />
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium truncate ${
+                        currentSession === s.session_id ? "text-blue-900" : "text-gray-700"
+                      }`}>
+                        {s.title || "Untitled Chat"}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-400">
+                          {s.message_count || 0} messages
+                        </span>
+                        {s.last_message_at && (
+                          <>
+                            <span className="text-xs text-gray-300">•</span>
+                            <span className="text-xs text-gray-400">
+                              {new Date(s.last_message_at).toLocaleDateString()}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {isLoading && currentSession === s.session_id && (
+                      <Loader2 className="w-4 h-4 text-blue-600 animate-spin flex-shrink-0" />
+                    )}
+                  </button>
+                ))
+              )}
+            </nav>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex flex-col gap-1 border-t border-gray-200 p-4">
+          <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+            <Settings className="w-4 h-4" />
+            <span className="text-sm font-medium">Settings</span>
           </button>
-          <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-700 dark:text-slate-300">
-            <span className=" text-[24px]" >
-              <Info/>
-            </span>
-            <span className="text-sm font-medium leading-normal">Help & FAQ</span>
+          <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+            <Info className="w-4 h-4" />
+            <span className="text-sm font-medium">Help & FAQ</span>
           </button>
         </div>
       </div>
     </aside>
-
-
-
   );
 }
