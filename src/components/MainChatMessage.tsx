@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Bot, User } from "lucide-react";
+import LinkifiedText from "./LinkifiedText";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -124,9 +125,18 @@ export default function MainChat({
                   ? "bg-blue-600 text-white rounded-tr-sm"
                   : "bg-white text-gray-900 border border-gray-200 rounded-tl-sm"
               }`}>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                  {msg.content}
-                </p>
+                <LinkifiedText
+                  content={msg.content}
+                  className={`text-sm leading-relaxed ${
+                    msg.role === "user" ? "text-white" : "text-gray-900"
+                  }`}
+                  linkClassName={
+                    msg.role === "user"
+                      ? "text-blue-100 hover:text-white decoration-blue-200 hover:decoration-white"
+                      : "text-blue-600 hover:text-blue-800"
+                  }
+                  showIcon={msg.role === "assistant"}
+                />
               </div>
               {msg.timestamp && (
                 <span className="text-xs text-gray-400 mt-1 px-1">

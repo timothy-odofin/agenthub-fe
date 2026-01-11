@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import MainChat from "@/components/MainChatMessage";
 import ChatInput from "@/components/MainChatInput";
@@ -23,6 +24,9 @@ interface ChatMessage {
 }
 
 export default function ChatLayout() {
+  const { sessionId: urlSessionId } = useParams<{ sessionId?: string }>();
+  const navigate = useNavigate();
+  
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -34,6 +38,13 @@ export default function ChatLayout() {
   useEffect(() => {
     loadSessions();
   }, []);
+
+  // Load session from URL parameter if present
+  useEffect(() => {
+    if (urlSessionId && urlSessionId !== currentSession) {
+      openSession(urlSessionId);
+    }
+  }, [urlSessionId]);
 
   const loadSessions = async () => {
     try {
@@ -52,12 +63,21 @@ export default function ChatLayout() {
     setMessages([]);
     setIsNewSession(true);
     setError(null);
+    
+    // Navigate to base dashboard URL (remove session ID from URL)
+    navigate('/main-dashboard');
   };
 
   const openSession = async (sessionId: string) => {
     try {
       setIsLoadingSession(true);
       setError(null);
+      
+      // Update URL with session ID
+      if (sessionId !== urlSessionId) {
+        navigate(`/main-dashboard/${sessionId}`, { replace: true });
+      }
+      
       const res = await getSessionMessages(sessionId);
       
       if (res.data?.success) {
@@ -99,7 +119,11 @@ export default function ChatLayout() {
       if (res.data?.success) {
         // Capture session_id from response (important for first message)
         if (!currentSession && res.data.session_id) {
-          setCurrentSession(res.data.session_id);
+          const newSessionId = res.data.session_id;
+          setCurrentSession(newSessionId);
+          
+          // Update URL with new session ID
+          navigate(`/main-dashboard/${newSessionId}`, { replace: true });
         }
 
         // Add AI response

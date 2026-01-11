@@ -32,16 +32,19 @@ const routes: RouteObject[] = [
     path: "/login", element: <Login/>
   },
   {
-  path: "/main-dashboard",
-  element: (
-    <ProtectedRoute>
-      <ChatLayout />
-    </ProtectedRoute>
-  ),
-}
-
-
-  
+    path: "/main-dashboard",
+    element: (
+      <ProtectedRoute>
+        <ChatLayout />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/main-dashboard/:sessionId",
+    element: (
+      <ProtectedRoute>
+        <ChatLayout />
+      </ProtectedRoute>
+    ),
+  }
 ];
-
-export default routes;
