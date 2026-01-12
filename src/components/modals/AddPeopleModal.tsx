@@ -45,6 +45,9 @@ export default function AddPeopleModal({
   const [sharedUsers, setSharedUsers] = useState<SharedUser[]>(MOCK_SHARED_USERS);
   const [inviteSent, setInviteSent] = useState(false);
 
+  // Suppress unused variable warning - sessionId will be used with backend
+  void sessionId;
+
   const handleInvite = () => {
     if (!email.trim()) return;
 

@@ -1,33 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Sidebar from "@/components/Sidebar";
-import MainChat from "@/components/MainChatMessage";
-import ChatInput from "@/components/MainChatInput";
-import ChatTopbar from "@/components/ChatTopbar";
-import EnhancedShareModal from "@/components/EnhancedShareModal";
-import AddPeopleModal from "@/components/AddPeopleModal";
+import Sidebar from "@/components/chat/Sidebar";
+import MainChat from "@/components/chat/MainChatMessage";
+import ChatInput from "@/components/chat/MainChatInput";
+import ChatTopbar from "../components/chat/ChatTopbar"
+import EnhancedShareModal from "@/components/modals/EnhancedShareModal";
+import AddPeopleModal from "@/components/modals/AddPeopleModal";
 
 import {
   getChatSessions,
   sendChatMessage,
   getSessionMessages,
   updateSessionTitle,
-} from "../api/conversationalAuth";
+} from "@/api/chat";
 
-interface ChatSession {
-  session_id: string;
-  title?: string;
-  created_at?: string;
-  last_message_at?: string;
-  message_count?: number;
-}
-
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-  id?: string;
-}
+import type { ChatSession, ChatMessage } from "@/types";
 
 export default function ChatLayout() {
   const { sessionId: urlSessionId } = useParams<{ sessionId?: string }>();

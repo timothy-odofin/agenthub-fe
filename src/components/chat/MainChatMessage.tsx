@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Bot, User } from "lucide-react";
-import LinkifiedText from "./LinkifiedText";
+import LinkifiedText from "../common/LinkifiedText";
 
 interface ChatMessage {
   role: "user" | "assistant";

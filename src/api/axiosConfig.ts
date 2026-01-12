@@ -1,7 +1,7 @@
 import axios from "axios";
 import { logout } from "@/utils/auth";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://agenthub-api.onrender.com";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

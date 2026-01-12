@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Github, Chrome, Loader2 } from "lucide-react";
-import LeftLogin from "@/components/LeftLogin";
-import { login } from "@/api/conversationalAuth";
+import LeftLogin from "@/components/common/LeftLogin";
+import { login } from "@/api/auth";
 import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
