@@ -8,7 +8,7 @@ interface SidebarProps {
   isLoading?: boolean;
 }
 
-import { Info, Loader2, MessageSquare, Plus, Settings, Edit2, Share2, MoreVertical } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Edit2, Share2, MoreVertical, LogOut } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export default function Sidebar({
@@ -215,13 +215,17 @@ export default function Sidebar({
 
         {/* Footer */}
         <div className="flex flex-col gap-1 border-t border-gray-200 p-4">
-          <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-            <Settings className="w-4 h-4" />
-            <span className="text-sm font-medium">Settings</span>
-          </button>
-          <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-            <Info className="w-4 h-4" />
-            <span className="text-sm font-medium">Help & FAQ</span>
+          <button 
+            onClick={() => {
+              localStorage.removeItem("access_token");
+              localStorage.removeItem("refresh_token");
+              localStorage.removeItem("user");
+              window.location.href = "/";
+            }}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Logout</span>
           </button>
         </div>
       </div>
