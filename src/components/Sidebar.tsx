@@ -3,18 +3,74 @@ interface SidebarProps {
   currentSession: string | null;
   onNewChat: () => void;
   onSelectSession: (id: string) => void;
+  onRenameSession: (id: string, newTitle: string) => Promise<void>;
+  onShareSession: (id: string) => void;
   isLoading?: boolean;
 }
 
-import { History, Info, Loader2, MessageSquare, Plus, Settings } from "lucide-react";
+import { History, Info, Loader2, MessageSquare, Plus, Settings, Edit2, Share2, MoreVertical } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 export default function Sidebar({
   sessions,
   currentSession,
   onNewChat,
   onSelectSession,
+  onRenameSession,
+  onShareSession,
   isLoading = false,
 }: SidebarProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingId]);
+
+  const handleStartEdit = (session: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(session.session_id);
+    setEditTitle(session.title || "Untitled Chat");
+    setMenuOpenId(null);
+  };
+
+  const handleSaveEdit = async (sessionId: string) => {
+    if (editTitle.trim() && editTitle !== sessions.find(s => s.session_id === sessionId)?.title) {
+      await onRenameSession(sessionId, editTitle.trim());
+    }
+    setEditingId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditTitle("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, sessionId: string) => {
+    if (e.key === "Enter") {
+      handleSaveEdit(sessionId);
+    } else if (e.key === "Escape") {
+      handleCancelEdit();
+    }
+  };
+
+  const handleShare = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onShareSession(sessionId);
+    setMenuOpenId(null);
+  };
+
+  const toggleMenu = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpenId(menuOpenId === sessionId ? null : sessionId);
+  };
+
   return (
     <aside className="w-[280px] hidden md:flex flex-col border-r border-gray-200 bg-white h-full shrink-0">
       <div className="flex flex-col h-full">
@@ -59,45 +115,110 @@ export default function Sidebar({
                 </div>
               ) : (
                 sessions.map((s) => (
-                  <button 
-                    className={`flex items-start gap-3 px-3 py-3 rounded-lg hover:bg-gray-100 transition-all text-left group relative ${
+                  <div
+                    key={s.session_id}
+                    className={`flex items-start gap-2 px-3 py-3 rounded-lg transition-all relative group ${
                       currentSession === s.session_id 
                         ? "bg-blue-50 hover:bg-blue-100 border-l-2 border-blue-600" 
-                        : "hover:border-l-2 hover:border-gray-300"
+                        : "hover:bg-gray-100 hover:border-l-2 hover:border-gray-300"
                     }`}
-                    key={s.session_id}
-                    onClick={() => onSelectSession(s.session_id)}
-                    disabled={isLoading}
                   >
-                    <History className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                      currentSession === s.session_id ? "text-blue-600" : "text-gray-400"
-                    }`} />
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${
-                        currentSession === s.session_id ? "text-blue-900" : "text-gray-700"
-                      }`}>
-                        {s.title || "Untitled Chat"}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-400">
-                          {s.message_count || 0} messages
-                        </span>
-                        {s.last_message_at && (
-                          <>
-                            <span className="text-xs text-gray-300">•</span>
-                            <span className="text-xs text-gray-400">
-                              {new Date(s.last_message_at).toLocaleDateString()}
-                            </span>
-                          </>
+                    <button 
+                      className="flex items-start gap-3 flex-1 min-w-0 text-left"
+                      onClick={() => onSelectSession(s.session_id)}
+                      disabled={isLoading || editingId === s.session_id}
+                    >
+                      <History className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                        currentSession === s.session_id ? "text-blue-600" : "text-gray-400"
+                      }`} />
+                      
+                      <div className="flex-1 min-w-0">
+                        {editingId === s.session_id ? (
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onBlur={() => handleSaveEdit(s.session_id)}
+                            onKeyDown={(e) => handleKeyDown(e, s.session_id)}
+                            className="w-full px-2 py-1 text-sm font-medium border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <p className={`text-sm font-medium truncate ${
+                            currentSession === s.session_id ? "text-blue-900" : "text-gray-700"
+                          }`}>
+                            {s.title || "Untitled Chat"}
+                          </p>
                         )}
+                        
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-gray-400">
+                            {s.message_count || 0} messages
+                          </span>
+                          {s.last_message_at && (
+                            <>
+                              <span className="text-xs text-gray-300">•</span>
+                              <span className="text-xs text-gray-400">
+                                {new Date(s.last_message_at).toLocaleDateString()}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
+                    </button>
+
+                    {/* Actions Menu */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {isLoading && currentSession === s.session_id ? (
+                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                      ) : (
+                        <>
+                          <button
+                            onClick={(e) => handleStartEdit(s, e)}
+                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
+                            title="Rename"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 text-gray-500 hover:text-blue-600" />
+                          </button>
+                          <button
+                            onClick={(e) => handleShare(s.session_id, e)}
+                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
+                            title="Share"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-gray-500 hover:text-green-600" />
+                          </button>
+                          <button
+                            onClick={(e) => toggleMenu(s.session_id, e)}
+                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
+                            title="More"
+                          >
+                            <MoreVertical className="w-3.5 h-3.5 text-gray-500" />
+                          </button>
+                        </>
+                      )}
                     </div>
 
-                    {isLoading && currentSession === s.session_id && (
-                      <Loader2 className="w-4 h-4 text-blue-600 animate-spin flex-shrink-0" />
+                    {/* Dropdown Menu */}
+                    {menuOpenId === s.session_id && (
+                      <div className="absolute right-2 top-12 z-10 bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-40">
+                        <button
+                          onClick={(e) => handleStartEdit(s, e)}
+                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          Rename
+                        </button>
+                        <button
+                          onClick={(e) => handleShare(s.session_id, e)}
+                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <Share2 className="w-4 h-4" />
+                          Share
+                        </button>
+                      </div>
                     )}
-                  </button>
+                  </div>
                 ))
               )}
             </nav>

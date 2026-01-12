@@ -25,3 +25,7 @@ export const sendChatMessage = (payload: SendChatMessagePayload) =>
 // 4. Get chat messages for a specific session
 export const getSessionMessages = (sessionId: string, limit: number = 50) =>
   api.get(`/api/v1/chat/sessions/${sessionId}/messages?limit=${limit}`);
+
+// 5. Update session title
+export const updateSessionTitle = (sessionId: string, title: string) =>
+  api.put(`/api/v1/chat/sessions/${sessionId}/title`, { title });

@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import MainChat from "@/components/MainChatMessage";
 import ChatInput from "@/components/MainChatInput";
+import ShareChatModal from "@/components/ShareChatModal";
 
 import {
   getChatSessions,
   sendChatMessage,
   getSessionMessages,
+  updateSessionTitle,
 } from "../api/conversationalAuth";
 
 interface ChatSession {
@@ -34,6 +36,11 @@ export default function ChatLayout() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingSession, setIsLoadingSession] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Share modal state
+  const [shareModalOpen, setShareModalOpen] = useState<boolean>(false);
+  const [shareSessionId, setShareSessionId] = useState<string>("");
+  const [shareSessionTitle, setShareSessionTitle] = useState<string>("");
 
   useEffect(() => {
     loadSessions();
@@ -92,6 +99,35 @@ export default function ChatLayout() {
       setError("Failed to load conversation. Please try again.");
     } finally {
       setIsLoadingSession(false);
+    }
+  };
+
+  const handleRenameSession = async (sessionId: string, newTitle: string) => {
+    try {
+      const res = await updateSessionTitle(sessionId, newTitle);
+      
+      if (res.data?.success) {
+        // Update session in local state
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId ? { ...s, title: newTitle } : s
+          )
+        );
+      } else {
+        setError("Failed to rename session");
+      }
+    } catch (err) {
+      console.error("Failed to rename session:", err);
+      setError("Failed to rename conversation. Please try again.");
+    }
+  };
+
+  const handleShareSession = (sessionId: string) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (session) {
+      setShareSessionId(sessionId);
+      setShareSessionTitle(session.title || "Untitled Chat");
+      setShareModalOpen(true);
     }
   };
 
@@ -168,7 +204,16 @@ export default function ChatLayout() {
         currentSession={currentSession}
         onNewChat={startNewChat}
         onSelectSession={openSession}
+        onRenameSession={handleRenameSession}
+        onShareSession={handleShareSession}
         isLoading={isLoadingSession}
+      />
+
+      <ShareChatModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        sessionId={shareSessionId}
+        sessionTitle={shareSessionTitle}
       />
 
       <div className="flex flex-col flex-1 bg-gray-50">
