@@ -8,7 +8,7 @@ interface SidebarProps {
   isLoading?: boolean;
 }
 
-import { History, Info, Loader2, MessageSquare, Plus, Settings, Edit2, Share2, MoreVertical } from "lucide-react";
+import { Info, Loader2, MessageSquare, Plus, Settings, Edit2, Share2, MoreVertical } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export default function Sidebar({
@@ -128,10 +128,6 @@ export default function Sidebar({
                       onClick={() => onSelectSession(s.session_id)}
                       disabled={isLoading || editingId === s.session_id}
                     >
-                      <History className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                        currentSession === s.session_id ? "text-blue-600" : "text-gray-400"
-                      }`} />
-                      
                       <div className="flex-1 min-w-0">
                         {editingId === s.session_id ? (
                           <input
@@ -152,19 +148,11 @@ export default function Sidebar({
                           </p>
                         )}
                         
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-400">
-                            {s.message_count || 0} messages
-                          </span>
-                          {s.last_message_at && (
-                            <>
-                              <span className="text-xs text-gray-300">•</span>
-                              <span className="text-xs text-gray-400">
-                                {new Date(s.last_message_at).toLocaleDateString()}
-                              </span>
-                            </>
-                          )}
-                        </div>
+                        {s.last_message_at && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(s.last_message_at).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
                     </button>
 

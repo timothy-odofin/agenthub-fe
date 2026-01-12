@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import MainChat from "@/components/MainChatMessage";
 import ChatInput from "@/components/MainChatInput";
-import ShareChatModal from "@/components/ShareChatModal";
+import ChatTopbar from "@/components/ChatTopbar";
+import EnhancedShareModal from "@/components/EnhancedShareModal";
+import AddPeopleModal from "@/components/AddPeopleModal";
 
 import {
   getChatSessions,
@@ -13,9 +15,11 @@ import {
 } from "../api/conversationalAuth";
 
 interface ChatSession {
-  id: string;
+  session_id: string;
   title?: string;
   created_at?: string;
+  last_message_at?: string;
+  message_count?: number;
 }
 
 interface ChatMessage {
@@ -37,10 +41,15 @@ export default function ChatLayout() {
   const [isLoadingSession, setIsLoadingSession] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Share modal state
+  // Modal states
   const [shareModalOpen, setShareModalOpen] = useState<boolean>(false);
+  const [addPeopleModalOpen, setAddPeopleModalOpen] = useState<boolean>(false);
   const [shareSessionId, setShareSessionId] = useState<string>("");
   const [shareSessionTitle, setShareSessionTitle] = useState<string>("");
+  
+  // Topbar state
+  const [selectedModel, setSelectedModel] = useState<string>("gpt-4-turbo");
+  const [isPinned, setIsPinned] = useState<boolean>(false);
 
   useEffect(() => {
     loadSessions();
@@ -110,7 +119,7 @@ export default function ChatLayout() {
         // Update session in local state
         setSessions((prev) =>
           prev.map((s) =>
-            s.id === sessionId ? { ...s, title: newTitle } : s
+            s.session_id === sessionId ? { ...s, title: newTitle } : s
           )
         );
       } else {
@@ -123,12 +132,63 @@ export default function ChatLayout() {
   };
 
   const handleShareSession = (sessionId: string) => {
-    const session = sessions.find((s) => s.id === sessionId);
+    const session = sessions.find((s) => s.session_id === sessionId);
     if (session) {
       setShareSessionId(sessionId);
       setShareSessionTitle(session.title || "Untitled Chat");
       setShareModalOpen(true);
     }
+  };
+
+  // Topbar handlers
+  const handleTopbarShare = () => {
+    if (currentSession) {
+      const session = sessions.find((s) => s.session_id === currentSession);
+      if (session) {
+        setShareSessionId(currentSession);
+        setShareSessionTitle(session.title || "Untitled Chat");
+        setShareModalOpen(true);
+      }
+    }
+  };
+
+  const handleAddPeople = () => {
+    if (currentSession) {
+      const session = sessions.find((s) => s.session_id === currentSession);
+      if (session) {
+        setShareSessionId(currentSession);
+        setShareSessionTitle(session.title || "Untitled Chat");
+        setAddPeopleModalOpen(true);
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    if (currentSession && confirm("Are you sure you want to delete this conversation?")) {
+      // Future: API call to delete session
+      console.log("Deleting session:", currentSession);
+      setError("Delete functionality pending backend API");
+    }
+  };
+
+  const handleArchive = () => {
+    if (currentSession) {
+      // Future: API call to archive session
+      console.log("Archiving session:", currentSession);
+      setError("Archive functionality pending backend API");
+    }
+  };
+
+  const handlePin = () => {
+    setIsPinned(!isPinned);
+    // Future: API call to pin/unpin session
+    console.log("Pin toggled:", !isPinned);
+  };
+
+  const handleModelChange = (modelId: string) => {
+    setSelectedModel(modelId);
+    // Future: API call to update model preference
+    console.log("Model changed to:", modelId);
   };
 
   const handleSend = async (text: string) => {
@@ -209,14 +269,39 @@ export default function ChatLayout() {
         isLoading={isLoadingSession}
       />
 
-      <ShareChatModal
+      {/* Modals */}
+      <EnhancedShareModal
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
         sessionId={shareSessionId}
         sessionTitle={shareSessionTitle}
       />
 
+      <AddPeopleModal
+        isOpen={addPeopleModalOpen}
+        onClose={() => setAddPeopleModalOpen(false)}
+        sessionId={shareSessionId}
+        sessionTitle={shareSessionTitle}
+      />
+
       <div className="flex flex-col flex-1 bg-gray-50">
+        {/* Topbar - Only show when session is active */}
+        {currentSession && (
+          <ChatTopbar
+            sessionTitle={
+              sessions.find((s) => s.session_id === currentSession)?.title || "Untitled Chat"
+            }
+            selectedModel={selectedModel}
+            onModelChange={handleModelChange}
+            onShare={handleTopbarShare}
+            onAddPeople={handleAddPeople}
+            onDelete={handleDelete}
+            onArchive={handleArchive}
+            onPin={handlePin}
+            isPinned={isPinned}
+          />
+        )}
+
         {/* Error Banner */}
         {error && (
           <div className="bg-red-50 border-b border-red-200 px-4 py-3 text-red-800 text-sm">
