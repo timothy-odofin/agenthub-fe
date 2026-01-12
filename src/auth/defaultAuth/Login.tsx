@@ -1,20 +1,20 @@
 import React, { useState } from "react";
-import { Bot, Github, Chrome, Rss } from "lucide-react";
+import { Github, Chrome, Loader2 } from "lucide-react";
 import LeftLogin from "@/components/LeftLogin";
-import type { LoginData } from "@/model";
 import { login } from "@/api/conversationalAuth";
 import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [loginData, setLoginData] = useState<LoginData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoading(true);
+  setError("");
 
   try {
     const payload = { identifier, password };
@@ -29,7 +29,7 @@ const Login: React.FC = () => {
     navigate("/main-dashboard");
 
   } catch (error: any) {
-    alert(error.response?.data?.message || "Invalid credentials");
+    setError(error.response?.data?.message || "Invalid credentials. Please try again.");
   } finally {
     setLoading(false);
   }
@@ -79,6 +79,13 @@ const Login: React.FC = () => {
 
             {/* Form */}
             <form className="space-y-5" onSubmit={handleSubmit}>
+              {/* Error Message */}
+              {error && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-bold text-white">
                   Email Address
@@ -117,9 +124,17 @@ const Login: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-2  bg-[#1337ec] hover:bg-[#1337ec]/90 text-white font-bold rounded-2xl shadow-lg shadow-[#1337ec]/20 text-sm "
+                disabled={loading}
+                className="w-full py-2 bg-[#1337ec] hover:bg-[#1337ec]/90 text-white font-bold rounded-2xl shadow-lg shadow-[#1337ec]/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Sign In
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </button>
             </form>
 
