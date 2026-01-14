@@ -21,6 +21,11 @@ export interface LoginData {
 export interface SendChatMessagePayload {
   message: string;
   session_id: string | null;
+  metadata?: {
+    capability_id?: string;
+    is_capability_selection?: boolean;
+    [key: string]: any;
+  };
 }
 
 export interface ChatSession {

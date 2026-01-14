@@ -15,3 +15,6 @@ export const getSessionMessages = (sessionId: string, limit: number = 50) =>
 
 export const updateSessionTitle = (sessionId: string, title: string) =>
   api.put(`/api/v1/chat/sessions/${sessionId}/title`, { title });
+
+export const deleteSession = (sessionId: string) =>
+  api.delete(`/api/v1/chat/sessions/${sessionId}`);

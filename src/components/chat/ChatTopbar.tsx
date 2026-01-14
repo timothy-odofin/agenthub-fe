@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Share2, UserPlus, MoreVertical, ChevronDown, Trash2, Archive, Pin, Sparkles } from "lucide-react";
+import { Share2, UserPlus, MoreVertical, ChevronDown, Trash2, Archive, Pin, Sparkles, Loader2 } from "lucide-react";
 
 interface ChatTopbarProps {
   sessionTitle: string;
@@ -11,6 +11,7 @@ interface ChatTopbarProps {
   onArchive: () => void;
   onPin: () => void;
   isPinned?: boolean;
+  isDeleting?: boolean;
 }
 
 // Static model data (future: fetch from API)
@@ -32,6 +33,7 @@ export default function ChatTopbar({
   onArchive,
   onPin,
   isPinned = false,
+  isDeleting = false,
 }: ChatTopbarProps) {
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -202,10 +204,17 @@ export default function ChatTopbar({
                 <div className="border-t border-gray-100 my-1"></div>
                 <button
                   onClick={() => handleMoreAction(onDelete)}
-                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-red-50 transition-colors text-left"
+                  disabled={isDeleting}
+                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-red-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 className="w-4 h-4 text-red-600" />
-                  <span className="text-sm text-red-600">Delete</span>
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 text-red-600 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  )}
+                  <span className="text-sm text-red-600">
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </span>
                 </button>
               </div>
             )}

@@ -6,12 +6,15 @@ import ChatInput from "@/components/chat/MainChatInput";
 import ChatTopbar from "../components/chat/ChatTopbar"
 import EnhancedShareModal from "@/components/modals/EnhancedShareModal";
 import AddPeopleModal from "@/components/modals/AddPeopleModal";
+import ConfirmationModal from "@/components/modals/ConfirmationModal";
+import ModelCapabilities from "../components/ModelCapabilities";
 
 import {
   getChatSessions,
   sendChatMessage,
   getSessionMessages,
   updateSessionTitle,
+  deleteSession,
 } from "@/api/chat";
 
 import type { ChatSession, ChatMessage } from "@/types";
@@ -26,20 +29,38 @@ export default function ChatLayout() {
   const [isNewSession, setIsNewSession] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingSession, setIsLoadingSession] = useState<boolean>(false);
+  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
+  const [isDeletingSession, setIsDeletingSession] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Capabilities state
+  const [capabilities, setCapabilities] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isLoadingCapabilities, setIsLoadingCapabilities] = useState<boolean>(false);
+  const [capabilitiesError, setCapabilitiesError] = useState<string | null>(null);
+  
+  // Capability selection state
+  const [selectedCapability, setSelectedCapability] = useState<{
+    id: string;
+    defaultPrompt: string;
+  } | null>(null);
   
   // Modal states
   const [shareModalOpen, setShareModalOpen] = useState<boolean>(false);
   const [addPeopleModalOpen, setAddPeopleModalOpen] = useState<boolean>(false);
   const [shareSessionId, setShareSessionId] = useState<string>("");
   const [shareSessionTitle, setShareSessionTitle] = useState<string>("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   
   // Topbar state
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4-turbo");
   const [isPinned, setIsPinned] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log('=== ChatLayout mounted - Starting initial load ===');
     loadSessions();
+    loadCapabilities();
   }, []);
 
   // Load session from URL parameter if present
@@ -48,6 +69,41 @@ export default function ChatLayout() {
       openSession(urlSessionId);
     }
   }, [urlSessionId]);
+
+  const loadCapabilities = async () => {
+    try {
+      console.log('🔵 Loading capabilities from API...');
+      console.log('🔵 Token:', localStorage.getItem('access_token') ? 'exists' : 'missing');
+      setIsLoadingCapabilities(true);
+      setCapabilitiesError(null);
+      
+      const res = await fetch('http://localhost:8000/api/v1/chat/capabilities', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('🔵 Response status:', res.status);
+      const data = await res.json();
+      console.log('🔵 Capabilities loaded:', data);
+      
+      if (data.success) {
+        setCapabilities(data.capabilities);
+        setCategories(data.categories);
+        console.log('✅ Capabilities set successfully');
+      } else {
+        console.error('❌ API returned success=false');
+        setCapabilitiesError('Failed to load capabilities');
+      }
+    } catch (err) {
+      console.error('❌ Failed to load capabilities:', err);
+      setCapabilitiesError('Failed to load capabilities');
+    } finally {
+      setIsLoadingCapabilities(false);
+      console.log('🔵 Loading complete');
+    }
+  };
 
   const loadSessions = async () => {
     try {
@@ -74,6 +130,7 @@ export default function ChatLayout() {
   const openSession = async (sessionId: string) => {
     try {
       setIsLoadingSession(true);
+      setLoadingSessionId(sessionId);
       setError(null);
       
       // Update URL with session ID
@@ -95,6 +152,7 @@ export default function ChatLayout() {
       setError("Failed to load conversation. Please try again.");
     } finally {
       setIsLoadingSession(false);
+      setLoadingSessionId(null);
     }
   };
 
@@ -151,10 +209,53 @@ export default function ChatLayout() {
   };
 
   const handleDelete = () => {
-    if (currentSession && confirm("Are you sure you want to delete this conversation?")) {
-      // Future: API call to delete session
-      console.log("Deleting session:", currentSession);
-      setError("Delete functionality pending backend API");
+    if (!currentSession) return;
+    setSessionToDelete(currentSession);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteSession = (sessionId: string) => {
+    setSessionToDelete(sessionId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!sessionToDelete) return;
+
+    try {
+      setIsDeletingSession(true);
+      setError(null);
+
+      const res = await deleteSession(sessionToDelete);
+
+      if (res.data?.success) {
+        // Remove session from local state
+        setSessions((prev) => prev.filter((s) => s.session_id !== sessionToDelete));
+        
+        // If deleting current session, clear it
+        if (sessionToDelete === currentSession) {
+          setCurrentSession(null);
+          setMessages([]);
+          setIsNewSession(true);
+          navigate("/main-dashboard", { replace: true });
+        }
+        
+        console.log("✅ Session deleted successfully:", res.data);
+        
+        // Close modal
+        setDeleteConfirmOpen(false);
+        setSessionToDelete(null);
+      } else {
+        setError("Failed to delete conversation");
+      }
+    } catch (err: any) {
+      console.error("❌ Failed to delete session:", err);
+      const errorMsg = err.response?.data?.message || 
+                       err.response?.data?.detail || 
+                       "Failed to delete conversation. Please try again.";
+      setError(errorMsg);
+    } finally {
+      setIsDeletingSession(false);
     }
   };
 
@@ -178,26 +279,69 @@ export default function ChatLayout() {
     console.log("Model changed to:", modelId);
   };
 
+  const handleCapabilityClick = (capabilityId: string, defaultPrompt: string) => {
+    // Store the selected capability
+    setSelectedCapability({ id: capabilityId, defaultPrompt });
+  };
+
+  const handleSelectPrompt = async (prompt: string, _capabilityId: string) => {
+    // Send the selected prompt as a message
+    await handleSend(prompt);
+  };
+
   const handleSend = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() && !selectedCapability) return;
 
     try {
       setIsLoading(true);
       setError(null);
 
+      // Determine the message to send
+      let messageToSend = text.trim();
+      let metadata: any = undefined;
+
+      // Scenario 1: User clicked capability card directly (no typed message)
+      if (selectedCapability && !text.trim()) {
+        messageToSend = selectedCapability.defaultPrompt;
+        metadata = {
+          capability_id: selectedCapability.id,
+          is_capability_selection: true,
+        };
+      }
+      // Scenario 2: User typed message AND selected a capability
+      else if (selectedCapability && text.trim()) {
+        messageToSend = text.trim();
+        metadata = {
+          capability_id: selectedCapability.id,
+          is_capability_selection: true,
+        };
+      }
+      // Scenario 3: Normal chat (no capability selected)
+      // metadata remains undefined
+
+      // Clear selected capability after using it
+      setSelectedCapability(null);
+
       // Add user message immediately for better UX
       const userMessage: ChatMessage = {
         role: "user",
-        content: text,
+        content: messageToSend,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, userMessage]);
 
       // Send message with current session_id (null for first message)
-      const res = await sendChatMessage({
-        message: text,
+      const payload: any = {
+        message: messageToSend,
         session_id: currentSession,
-      });
+      };
+
+      // Only include metadata if it exists (Scenarios 1 & 2)
+      if (metadata) {
+        payload.metadata = metadata;
+      }
+
+      const res = await sendChatMessage(payload);
 
       if (res.data?.success) {
         // Capture session_id from response (important for first message)
@@ -253,7 +397,9 @@ export default function ChatLayout() {
         onSelectSession={openSession}
         onRenameSession={handleRenameSession}
         onShareSession={handleShareSession}
-        isLoading={isLoadingSession}
+        onDeleteSession={handleDeleteSession}
+        loadingSessionId={loadingSessionId}
+        isDeletingSession={isDeletingSession}
       />
 
       {/* Modals */}
@@ -271,6 +417,21 @@ export default function ChatLayout() {
         sessionTitle={shareSessionTitle}
       />
 
+      <ConfirmationModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setSessionToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Conversation"
+        message="Are you sure you want to delete this conversation? This action cannot be undone and all messages will be permanently removed."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDestructive={true}
+        isLoading={isDeletingSession}
+      />
+
       <div className="flex flex-col flex-1 bg-gray-50">
         {/* Topbar - Only show when session is active */}
         {currentSession && (
@@ -286,6 +447,7 @@ export default function ChatLayout() {
             onArchive={handleArchive}
             onPin={handlePin}
             isPinned={isPinned}
+            isDeleting={isDeletingSession}
           />
         )}
 
@@ -304,27 +466,43 @@ export default function ChatLayout() {
           </div>
         )}
 
-        {/* MAIN MESSAGES */}
-        <MainChat 
-          messages={messages} 
-          userName={userName} 
-          isLoading={isLoading} 
-          isLoadingSession={isLoadingSession}
-        />
-
-        {/* INPUT: Center when empty, sticky bottom otherwise */}
+        {/* MAIN CONTENT AREA */}
         {isEmpty ? (
-          <div className="flex justify-center items-center py-10">
-            <div className="w-full max-w-3xl px-4">
-              <ChatInput onSend={handleSend} isEmpty isLoading={isLoading} />
+          /* New Chat: Show Capabilities */
+          <div className="flex-1 overflow-y-auto">
+            {/* Model Capabilities - Show when no messages */}
+            <ModelCapabilities 
+              onSelectPrompt={handleSelectPrompt}
+              onCapabilityClick={handleCapabilityClick}
+              capabilities={capabilities}
+              categories={categories}
+              loading={isLoadingCapabilities}
+              error={capabilitiesError}
+              onRetry={loadCapabilities}
+            />
+            
+            {/* Centered Input */}
+            <div className="flex justify-center items-center py-10">
+              <div className="w-full max-w-5xl px-6">
+                <ChatInput onSend={handleSend} isEmpty isLoading={isLoading} />
+              </div>
             </div>
           </div>
         ) : (
-          <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-            <div className="w-full max-w-3xl mx-auto px-4">
-              <ChatInput onSend={handleSend} isEmpty={false} isLoading={isLoading} />
+          /* Existing Chat: Show Messages */
+          <>
+            <MainChat 
+              messages={messages} 
+              userName={userName} 
+              isLoading={isLoading} 
+              isLoadingSession={isLoadingSession}
+            />
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+              <div className="w-full max-w-5xl mx-auto px-6">
+                <ChatInput onSend={handleSend} isEmpty={false} isLoading={isLoading} />
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

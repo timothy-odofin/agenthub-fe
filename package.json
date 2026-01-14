@@ -1,7 +1,27 @@
 {
-  "name": "agent-hub-fe",
-  "private": true,
-  "version": "0.0.0",
+  "name": "agenthub-fe",
+  "version": "1.0.0",
+  "description": "AI-powered chat application with intelligent conversational experiences",
+  "author": "Timothy Odofin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timothy-odofin/agenthub-fe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/timothy-odofin/agenthub-fe/issues"
+  },
+  "homepage": "https://github.com/timothy-odofin/agenthub-fe#readme",
+  "keywords": [
+    "ai",
+    "chat",
+    "chatbot",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss"
+  ],
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,7 +38,10 @@
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.12.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18"
   },

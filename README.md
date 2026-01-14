@@ -1,10 +1,43 @@
 # AgentHub
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/timothy-odofin/agenthub-fe)
+[![React](https://img.shields.io/badge/React-19.2.0-61dafb.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.2.4-646CFF.svg)](https://vitejs.dev/)
+
 AgentHub is an AI-powered chat application that provides intelligent conversational experiences. Built with modern web technologies, it offers a clean and intuitive interface for interacting with AI assistants.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Running the Application](#running-the-application)
+  - [Building for Production](#building-for-production)
+- [Project Architecture](#project-architecture)
+- [Tech Stack](#tech-stack)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
 
 ## Overview
 
 This application provides two main experiences: a conversational signup process and a full-featured chat interface. The signup guides users through account creation in a natural, conversation-style flow, while the main chat interface supports multiple sessions, real-time messaging, and session management.
+
+## Features
+
+- 🤖 **AI-Powered Chat**: Real-time conversations with intelligent AI assistants
+- 🎨 **Dark Mode Support**: Seamless theme switching for comfortable viewing
+- 💬 **Session Management**: Create, rename, share, and delete chat sessions
+- 📝 **Rich Markdown**: Full support for formatted text, code blocks, tables, and more
+- 🔐 **Secure Authentication**: JWT-based auth with automatic token refresh
+- 📱 **Responsive Design**: Works beautifully on desktop, tablet, and mobile
+- ⚡ **Fast Performance**: Built with Vite for lightning-fast development and production builds
+- 🎯 **Conversational Signup**: Natural, guided account creation process
 
 ## Getting Started
 
@@ -25,13 +58,18 @@ npm install
 
 ### Configuration
 
-The application connects to a backend API. Update the base URL in `src/api/axiosConfig.ts`:
+Create a `.env` file in the root directory (use `.env.example` as template):
 
-```typescript
-const API_BASE_URL = "http://localhost:8000";
+```bash
+# Development server port
+PORT=3000
+
+# Backend API URL
+VITE_API_BASE_URL=http://localhost:8000
+
+# For production:
+# VITE_API_BASE_URL=https://api.yourdomain.com
 ```
-
-Change this to your backend server URL when deploying to production.
 
 ### Running the Application
 
@@ -151,11 +189,29 @@ Components follow React best practices:
 - Proper cleanup in useEffect hooks
 - Separation of concerns between UI and logic
 
+## Tech Stack
+
+### Frontend
+- **React 19.2.0** - Modern UI library with hooks
+- **TypeScript 5.9.3** - Type-safe JavaScript
+- **Vite 7.2.4** - Lightning-fast build tool
+- **React Router 7.12.0** - Client-side routing
+- **Tailwind CSS 4.1.18** - Utility-first styling
+- **Axios 1.13.2** - HTTP client with interceptors
+
+### UI Components
+- **Lucide React 0.562.0** - Beautiful icon set
+- **react-markdown 10.1.0** - Markdown rendering
+- **remark-gfm 4.0.1** - GitHub Flavored Markdown
+- **rehype-highlight 7.0.2** - Syntax highlighting
+- **highlight.js** - Code block styling
+
 ## Environment Variables
 
-While the project currently uses hardcoded configuration, you can add environment variables through a `.env` file:
+Configure the application using a `.env` file (see `.env.example`):
 
 ```
+PORT=3000
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
@@ -178,10 +234,32 @@ The application supports modern browsers:
 - Firefox 88+
 - Safari 14+
 
-## License
-
-This project is proprietary software. All rights reserved.
-
 ## Contributing
 
-This is a private project. For questions or issues, please contact the development team.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+- How to report bugs
+- How to suggest features
+- Development setup
+- Code style guidelines
+- Pull request process
+- Code of Conduct
+
+## Security
+
+For security concerns or vulnerability reports, please see [SECURITY.md](SECURITY.md).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2026 Timothy Odofin
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/timothy-odofin/agenthub-fe/issues)
+- **Documentation**: See the [docs](https://github.com/timothy-odofin/agenthub-fe#readme)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+Made with ❤️ by [Timothy Odofin](https://github.com/timothy-odofin)

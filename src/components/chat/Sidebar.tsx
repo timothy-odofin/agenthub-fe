@@ -5,10 +5,12 @@ interface SidebarProps {
   onSelectSession: (id: string) => void;
   onRenameSession: (id: string, newTitle: string) => Promise<void>;
   onShareSession: (id: string) => void;
-  isLoading?: boolean;
+  onDeleteSession?: (id: string) => void;
+  loadingSessionId?: string | null;
+  isDeletingSession?: boolean;
 }
 
-import { Loader2, MessageSquare, Plus, Edit2, Share2, MoreVertical, LogOut } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Edit2, Share2, MoreVertical, LogOut, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export default function Sidebar({
@@ -18,7 +20,9 @@ export default function Sidebar({
   onSelectSession,
   onRenameSession,
   onShareSession,
-  isLoading = false,
+  onDeleteSession,
+  loadingSessionId = null,
+  isDeletingSession = false,
 }: SidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -63,6 +67,14 @@ export default function Sidebar({
   const handleShare = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     onShareSession(sessionId);
+    setMenuOpenId(null);
+  };
+
+  const handleDelete = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDeleteSession) {
+      onDeleteSession(sessionId);
+    }
     setMenuOpenId(null);
   };
 
@@ -118,7 +130,9 @@ export default function Sidebar({
                   <div
                     key={s.session_id}
                     className={`flex items-start gap-2 px-3 py-3 rounded-lg transition-all relative group ${
-                      currentSession === s.session_id 
+                      loadingSessionId === s.session_id
+                        ? "bg-blue-50 opacity-60 cursor-wait"
+                        : currentSession === s.session_id 
                         ? "bg-blue-50 hover:bg-blue-100 border-l-2 border-blue-600" 
                         : "hover:bg-gray-100 hover:border-l-2 hover:border-gray-300"
                     }`}
@@ -126,7 +140,7 @@ export default function Sidebar({
                     <button 
                       className="flex items-start gap-3 flex-1 min-w-0 text-left"
                       onClick={() => onSelectSession(s.session_id)}
-                      disabled={isLoading || editingId === s.session_id}
+                      disabled={loadingSessionId !== null || editingId === s.session_id}
                     >
                       <div className="flex-1 min-w-0">
                         {editingId === s.session_id ? (
@@ -158,7 +172,7 @@ export default function Sidebar({
 
                     {/* Actions Menu */}
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isLoading && currentSession === s.session_id ? (
+                      {loadingSessionId === s.session_id ? (
                         <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
                       ) : (
                         <>
@@ -175,6 +189,18 @@ export default function Sidebar({
                             title="Share"
                           >
                             <Share2 className="w-3.5 h-3.5 text-gray-500 hover:text-green-600" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDelete(s.session_id, e)}
+                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
+                            title="Delete"
+                            disabled={isDeletingSession && currentSession === s.session_id}
+                          >
+                            {isDeletingSession && currentSession === s.session_id ? (
+                              <Loader2 className="w-3.5 h-3.5 text-red-600 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                            )}
                           </button>
                           <button
                             onClick={(e) => toggleMenu(s.session_id, e)}
@@ -204,6 +230,19 @@ export default function Sidebar({
                           <Share2 className="w-4 h-4" />
                           Share
                         </button>
+                        <div className="border-t border-gray-100 my-1"></div>
+                        <button
+                          onClick={(e) => handleDelete(s.session_id, e)}
+                          disabled={isDeletingSession && currentSession === s.session_id}
+                          className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isDeletingSession && currentSession === s.session_id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                          {isDeletingSession && currentSession === s.session_id ? "Deleting..." : "Delete"}
+                        </button>
                       </div>
                     )}
                   </div>
@@ -214,7 +253,37 @@ export default function Sidebar({
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col gap-1 border-t border-gray-200 p-4">
+        <div className="flex flex-col gap-2 border-t border-gray-200 p-4">
+          {/* User Info */}
+          {(() => {
+            try {
+              const user = JSON.parse(localStorage.getItem("user") || "{}");
+              
+              // Build display name from available fields
+              const displayName = user.name || 
+                                  (user.firstname && user.lastname ? `${user.firstname} ${user.lastname}` : null) ||
+                                  user.firstname || 
+                                  user.username;
+              
+              const displayEmail = user.email || user.username;
+              
+              if (displayName || displayEmail) {
+                return (
+                  <div className="px-3 py-2 mb-1">
+                    {displayName && (
+                      <p className="text-sm font-medium text-gray-700">{displayName}</p>
+                    )}
+                    {displayEmail && (
+                      <p className="text-xs text-gray-500">{displayEmail}</p>
+                    )}
+                  </div>
+                );
+              }
+            } catch (e) {
+              return null;
+            }
+          })()}
+          
           <button 
             onClick={() => {
               localStorage.removeItem("access_token");
