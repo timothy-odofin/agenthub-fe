@@ -21,11 +21,27 @@ export interface LoginData {
 export interface SendChatMessagePayload {
   message: string;
   session_id: string | null;
+  provider: string;
+  model: string;
   metadata?: {
     capability_id?: string;
     is_capability_selection?: boolean;
     [key: string]: any;
   };
+}
+
+export interface ModelVersion {
+  name: string;
+  display_name: string;
+  model_versions: string[];
+  default_model: string;
+  is_default: boolean;
+}
+
+export interface ProvidersResponse {
+  success: boolean;
+  providers: ModelVersion[];
+  total: number;
 }
 
 export interface ChatSession {

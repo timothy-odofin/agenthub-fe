@@ -1,5 +1,5 @@
 import api from "./axiosConfig";
-import type { SendChatMessagePayload } from "@/types";
+import type { SendChatMessagePayload, ProvidersResponse } from "@/types";
 
 export const createChatSession = (title?: string) =>
   api.post("/api/v1/chat/sessions", { title });
@@ -18,3 +18,6 @@ export const updateSessionTitle = (sessionId: string, title: string) =>
 
 export const deleteSession = (sessionId: string) =>
   api.delete(`/api/v1/chat/sessions/${sessionId}`);
+
+export const getLLMProviders = () =>
+  api.get<ProvidersResponse>("/api/v1/llm/providers");

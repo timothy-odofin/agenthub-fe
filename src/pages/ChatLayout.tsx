@@ -15,9 +15,10 @@ import {
   getSessionMessages,
   updateSessionTitle,
   deleteSession,
+  getLLMProviders,
 } from "@/api/chat";
 
-import type { ChatSession, ChatMessage } from "@/types";
+import type { ChatSession, ChatMessage, ModelVersion } from "@/types";
 
 export default function ChatLayout() {
   const { sessionId: urlSessionId } = useParams<{ sessionId?: string }>();
@@ -54,13 +55,18 @@ export default function ChatLayout() {
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   
   // Topbar state
-  const [selectedModel, setSelectedModel] = useState<string>("gpt-4-turbo");
   const [isPinned, setIsPinned] = useState<boolean>(false);
+
+  // LLM Providers state
+  const [providers, setProviders] = useState<ModelVersion[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
+  const [selectedModelVersion, setSelectedModelVersion] = useState<string>("");
 
   useEffect(() => {
     console.log('=== ChatLayout mounted - Starting initial load ===');
     loadSessions();
     loadCapabilities();
+    loadProviders();
   }, []);
 
   // Load session from URL parameter if present
@@ -113,6 +119,29 @@ export default function ChatLayout() {
       }
     } catch (err) {
       console.error("Failed to load sessions:", err);
+    }
+  };
+
+  const loadProviders = async () => {
+    try{
+      const res = await getLLMProviders();
+      
+      if (res.data?.success && res.data.providers) {
+        setProviders(res.data.providers);
+        
+        // Set default provider and model
+        const defaultProvider = res.data.providers.find((p: ModelVersion) => p.is_default) || res.data.providers[0];
+        if (defaultProvider) {
+          setSelectedProvider(defaultProvider.name);
+          setSelectedModelVersion(defaultProvider.default_model);
+        }
+        
+        console.log('✅ Providers loaded successfully:', res.data.providers);
+      }
+    } catch (err) {
+      console.error('❌ Failed to load providers:', err);
+      // Set fallback to empty array to avoid breaking the UI
+      setProviders([]);
     }
   };
 
@@ -273,12 +302,6 @@ export default function ChatLayout() {
     console.log("Pin toggled:", !isPinned);
   };
 
-  const handleModelChange = (modelId: string) => {
-    setSelectedModel(modelId);
-    // Future: API call to update model preference
-    console.log("Model changed to:", modelId);
-  };
-
   const handleCapabilityClick = (capabilityId: string, defaultPrompt: string) => {
     // Store the selected capability
     setSelectedCapability({ id: capabilityId, defaultPrompt });
@@ -334,6 +357,8 @@ export default function ChatLayout() {
       const payload: any = {
         message: messageToSend,
         session_id: currentSession,
+        provider: selectedProvider,
+        model: selectedModelVersion,
       };
 
       // Only include metadata if it exists (Scenarios 1 & 2)
@@ -432,15 +457,18 @@ export default function ChatLayout() {
         isLoading={isDeletingSession}
       />
 
-      <div className="flex flex-col flex-1 bg-gray-50">
+      <div className="flex flex-col flex-1 bg-gray-50 dark:bg-gray-900">
         {/* Topbar - Only show when session is active */}
         {currentSession && (
           <ChatTopbar
             sessionTitle={
               sessions.find((s) => s.session_id === currentSession)?.title || "Untitled Chat"
             }
-            selectedModel={selectedModel}
-            onModelChange={handleModelChange}
+            selectedModel={selectedModelVersion}
+            selectedProvider={selectedProvider}
+            providers={providers}
+            onModelChange={setSelectedModelVersion}
+            onProviderChange={setSelectedProvider}
             onShare={handleTopbarShare}
             onAddPeople={handleAddPeople}
             onDelete={handleDelete}
@@ -484,7 +512,11 @@ export default function ChatLayout() {
             {/* Centered Input */}
             <div className="flex justify-center items-center py-10">
               <div className="w-full max-w-5xl px-6">
-                <ChatInput onSend={handleSend} isEmpty isLoading={isLoading} />
+                <ChatInput 
+                  onSend={handleSend} 
+                  isEmpty 
+                  isLoading={isLoading}
+                />
               </div>
             </div>
           </div>
@@ -497,9 +529,13 @@ export default function ChatLayout() {
               isLoading={isLoading} 
               isLoadingSession={isLoadingSession}
             />
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+            <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4">
               <div className="w-full max-w-5xl mx-auto px-6">
-                <ChatInput onSend={handleSend} isEmpty={false} isLoading={isLoading} />
+                <ChatInput 
+                  onSend={handleSend} 
+                  isEmpty={false} 
+                  isLoading={isLoading}
+                />
               </div>
             </div>
           </>
