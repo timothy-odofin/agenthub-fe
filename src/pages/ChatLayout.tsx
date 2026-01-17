@@ -17,6 +17,7 @@ import {
   deleteSession,
   getLLMProviders,
 } from "@/api/chat";
+import { API_BASE_URL } from "@/api/axiosConfig";
 
 import type { ChatSession, ChatMessage, ModelVersion } from "@/types";
 
@@ -83,7 +84,7 @@ export default function ChatLayout() {
       setIsLoadingCapabilities(true);
       setCapabilitiesError(null);
       
-      const res = await fetch('http://localhost:8000/api/v1/chat/capabilities', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/chat/capabilities`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json'
